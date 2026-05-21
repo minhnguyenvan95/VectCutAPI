@@ -25,6 +25,8 @@ PORT = 9000
 
 OSS_CONFIG = []
 MP4_OSS_CONFIG=[]
+PEXELS_API_KEY = ""
+PIXABAY_API_KEY = ""
 
 # 尝试加载本地配置文件
 if os.path.exists(CONFIG_FILE_PATH):
@@ -60,6 +62,12 @@ if os.path.exists(CONFIG_FILE_PATH):
             # 更新MP4 OSS配置
             if "mp4_oss_config" in local_config:
                 MP4_OSS_CONFIG = local_config["mp4_oss_config"]
+
+            if "pexels_api_key" in local_config:
+                PEXELS_API_KEY = local_config["pexels_api_key"]
+
+            if "pixabay_api_key" in local_config:
+                PIXABAY_API_KEY = local_config["pixabay_api_key"]
 
     except Exception as e:
         # 配置文件加载失败，使用默认配置

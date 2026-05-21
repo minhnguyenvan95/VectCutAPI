@@ -16,5 +16,7 @@
     "access_key_secret": "your-access-key-secret",  // Access key secret for MP4 OSS authentication
     "region": "your-region",  // Region for MP4 storage
     "endpoint": "http://your-custom-domain"  // Custom domain endpoint for MP4 access
-  }
+  },
+  "pexels_api_key": "",  // Pexels API key for image/video search
+  "pixabay_api_key": ""  // Pixabay API key for image/video/audio search
 }

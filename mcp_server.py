@@ -12,6 +12,11 @@ import traceback
 import io
 import contextlib
 from typing import Any, Dict, List, Optional
+from media_capabilities import (
+    search_images, search_videos, search_audio,
+    get_image_by_id, get_video_by_id, get_audio_by_id,
+    download_image, download_video, download_audio
+)
 
 # 添加项目根目录到Python路径
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -255,6 +260,52 @@ TOOLS = [
             }
         }
     }
+,
+    {
+        "name": "search_images",
+        "description": "Search images, prefer Pexels and fallback to Pixabay when rate limited",
+        "inputSchema": {"type": "object", "properties": {"query": {"type": "string"}, "page": {"type": "integer", "default": 1}, "per_page": {"type": "integer", "default": 15}, "orientation": {"type": "string"}, "size": {"type": "string"}, "color": {"type": "string"}, "locale": {"type": "string"}, "category": {"type": "string"}, "lang": {"type": "string"}, "image_type": {"type": "string"}, "colors": {"type": "string"}, "editors_choice": {"type": "boolean"}, "safesearch": {"type": "boolean"}, "order": {"type": "string"}, "min_width": {"type": "integer"}, "min_height": {"type": "integer"}}, "required": ["query"]}
+    },
+    {
+        "name": "search_videos",
+        "description": "Search videos, prefer Pexels and fallback to Pixabay when rate limited",
+        "inputSchema": {"type": "object", "properties": {"query": {"type": "string"}, "page": {"type": "integer", "default": 1}, "per_page": {"type": "integer", "default": 15}, "orientation": {"type": "string"}, "size": {"type": "string"}, "locale": {"type": "string"}, "min_width": {"type": "integer"}, "min_height": {"type": "integer"}, "min_duration": {"type": "integer"}, "max_duration": {"type": "integer"}, "category": {"type": "string"}, "lang": {"type": "string"}, "video_type": {"type": "string"}, "editors_choice": {"type": "boolean"}, "safesearch": {"type": "boolean"}, "order": {"type": "string"}}, "required": ["query"]}
+    },
+    {
+        "name": "search_audio",
+        "description": "Search audio from Pixabay",
+        "inputSchema": {"type": "object", "properties": {"query": {"type": "string"}, "page": {"type": "integer", "default": 1}, "per_page": {"type": "integer", "default": 15}}, "required": ["query"]}
+    },
+    {
+        "name": "get_image_by_id",
+        "description": "Get image by id, prefer Pexels and fallback to Pixabay when rate limited",
+        "inputSchema": {"type": "object", "properties": {"media_id": {"type": "integer"}}, "required": ["media_id"]}
+    },
+    {
+        "name": "get_video_by_id",
+        "description": "Get video by id, prefer Pexels and fallback to Pixabay when rate limited",
+        "inputSchema": {"type": "object", "properties": {"media_id": {"type": "integer"}}, "required": ["media_id"]}
+    },
+    {
+        "name": "get_audio_by_id",
+        "description": "Get audio by id from Pixabay",
+        "inputSchema": {"type": "object", "properties": {"media_id": {"type": "integer"}}, "required": ["media_id"]}
+    },
+    {
+        "name": "download_image",
+        "description": "Download image to local path",
+        "inputSchema": {"type": "object", "properties": {"url": {"type": "string"}, "output_path": {"type": "string"}}, "required": ["url"]}
+    },
+    {
+        "name": "download_video",
+        "description": "Download video to local path",
+        "inputSchema": {"type": "object", "properties": {"url": {"type": "string"}, "output_path": {"type": "string"}}, "required": ["url"]}
+    },
+    {
+        "name": "download_audio",
+        "description": "Download audio to local path",
+        "inputSchema": {"type": "object", "properties": {"url": {"type": "string"}, "output_path": {"type": "string"}}, "required": ["url"]}
+    },
 ]
 
 # Guidance for AI orchestration clients:
@@ -307,7 +358,13 @@ def execute_tool(tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
     try:
         print(f"[DEBUG] Executing tool: {tool_name} with args: {arguments}", file=sys.stderr)
         
-        if not CAPCUT_AVAILABLE:
+        media_tools = {
+            "search_images", "search_videos", "search_audio",
+            "get_image_by_id", "get_video_by_id", "get_audio_by_id",
+            "download_image", "download_video", "download_audio"
+        }
+
+        if not CAPCUT_AVAILABLE and tool_name not in media_tools:
             return {"success": False, "error": "CapCut modules not available"}
         
         # 捕获标准输出，防止调试信息干扰
@@ -355,6 +412,33 @@ def execute_tool(tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
             elif tool_name == "get_video_duration":
                 duration = get_video_duration(arguments["video_url"])
                 result = {"duration": duration}
+
+            elif tool_name == "search_images":
+                result = search_images(**arguments)
+
+            elif tool_name == "search_videos":
+                result = search_videos(**arguments)
+
+            elif tool_name == "search_audio":
+                result = search_audio(**arguments)
+
+            elif tool_name == "get_image_by_id":
+                result = get_image_by_id(**arguments)
+
+            elif tool_name == "get_video_by_id":
+                result = get_video_by_id(**arguments)
+
+            elif tool_name == "get_audio_by_id":
+                result = get_audio_by_id(**arguments)
+
+            elif tool_name == "download_image":
+                result = download_image(**arguments)
+
+            elif tool_name == "download_video":
+                result = download_video(**arguments)
+
+            elif tool_name == "download_audio":
+                result = download_audio(**arguments)
                 
             elif tool_name == "save_draft":
                 save_result = save_draft_impl(**arguments)
@@ -377,7 +461,7 @@ def execute_tool(tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
         }
         
     except Exception as e:
-        print(f"[ERROR] Tool execution error: {e}", file=sys.stderr)
+        print(f"[ERROR] Tool execution error: tool={tool_name}, args={arguments}, error={e}", file=sys.stderr)
         print(f"[ERROR] Traceback: {traceback.format_exc()}", file=sys.stderr)
         return {"success": False, "error": str(e)}
 
