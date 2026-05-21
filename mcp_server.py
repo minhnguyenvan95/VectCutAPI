@@ -257,6 +257,18 @@ TOOLS = [
     }
 ]
 
+# Guidance for AI orchestration clients:
+# Prefer calling these MCP tools for editing logic instead of generating
+# custom media-processing code outside CapCut/VectCut draft pipeline.
+MCP_FIRST_GUIDANCE = (
+    "MCP-first rule: For video editing tasks, call CapCut tools first "
+    "(create_draft/add_video/add_audio/add_image/add_text/add_subtitle/"
+    "add_effect/add_sticker/add_video_keyframe/save_draft). "
+    "Do not write custom rendering/compositing logic when equivalent tool exists. "
+    "Example: styled text layer -> use add_text params (font/size/color/border/"
+    "background/transform)."
+)
+
 @contextlib.contextmanager
 def capture_stdout():
     """捕获标准输出，防止CapCut API的调试信息干扰JSON响应"""
@@ -400,7 +412,10 @@ def handle_request(request_data: str) -> Optional[str]:
             response = {
                 "jsonrpc": "2.0",
                 "id": request.get("id"),
-                "result": {"tools": TOOLS}
+                "result": {
+                    "tools": TOOLS,
+                    "instructions": MCP_FIRST_GUIDANCE
+                }
             }
             return json.dumps(response)
             
